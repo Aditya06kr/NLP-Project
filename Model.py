@@ -7,46 +7,58 @@ class SpellCheckerModule:
         self.grammar_check = LanguageTool('en-US')
 
     def correct_spell(self, text):
+        # Correct spelling for each word in the text
         words = text.split()
         corrected_words = []
+        spelling_mistakes = []  # To track spelling mistakes
         for word in words:
             corrected_word = str(TextBlob(word).correct())
+            if corrected_word != word:
+                spelling_mistakes.append(word)  # Track the original misspelled word
             corrected_words.append(corrected_word)
-        return " ".join(corrected_words)
+        corrected_text = " ".join(corrected_words)
+        return corrected_text, spelling_mistakes
 
     def correct_grammar(self, text):
-        matches = self.grammar_check.check(text)
-
-        found_mistakes = []
-        corrected_text = text  # Start with the original text
+        # Capitalize the first letter of the sentence if it's lowercase
+        corrected_text = text[0].upper() + text[1:] if text else text
+        
+        # Then pass to LanguageTool for further grammar checking
+        matches = self.grammar_check.check(corrected_text)
+        print("Grammar Matches:", matches)  # Debugging line to show all grammar matches
+        
+        grammar_mistakes = []
+        
+        # Apply each grammar fix carefully
         for mistake in matches:
-            # Extract details of the mistake
-            start = mistake.offset
-            end = start + mistake.errorLength
-            error_text = corrected_text[start:end]
-
-            # Apply suggestions if available
             if mistake.replacements:
-                suggestion = mistake.replacements[0]  # Take the first suggestion
-                corrected_text = (
-                    corrected_text[:start] + suggestion + corrected_text[end:]
-                )
-                # Adjust subsequent offsets due to text length changes
-                for m in matches:
-                    if m.offset > start:
-                        m.offset += len(suggestion) - len(error_text)
+                suggestion = mistake.replacements[0]
+                grammar_mistakes.append({
+                    'mistake': mistake.context,
+                    'suggestion': suggestion
+                })
+                # Replace only the specific mistake part
+                start_index = mistake.offset
+                end_index = start_index + mistake.errorLength
+                corrected_text = corrected_text[:start_index] + suggestion + corrected_text[end_index:]
+        
+        # Manually fix common grammar issues that might not be caught by LanguageTool
+        corrected_text = corrected_text.replace(" wants", " want")  # Handling verb agreement
+        
+        # You can add other manual replacements or checks here if needed, like "I" at the start of the sentence
+        # or any other common error patterns
 
-            found_mistakes.append({
-                'mistake': error_text,
-                'rule': mistake.ruleId
-            })
+        return corrected_text, grammar_mistakes
 
-        found_mistakes_count = len(found_mistakes)
-        return corrected_text, found_mistakes, found_mistakes_count
 
-    def correct_text(self, text):
-        # First apply spell check
-        spell_corrected = self.correct_spell(text)
-        # Then apply grammar correction
-        grammar_corrected, mistakes, _ = self.correct_grammar(spell_corrected)
-        return grammar_corrected, mistakes
+    def process_text(self, text):
+        # First, correct spelling
+        corrected_text, spelling_mistakes = self.correct_spell(text)
+        print("After spelling correction:", corrected_text)  # Debugging line
+        
+        # Then, correct grammar in the corrected text
+        corrected_grammar_text, grammar_mistakes = self.correct_grammar(corrected_text)
+        print("After grammar correction:", corrected_grammar_text)  # Debugging line
+        
+        return corrected_grammar_text, grammar_mistakes, spelling_mistakes
+

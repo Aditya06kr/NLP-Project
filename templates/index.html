@@ -58,14 +58,28 @@
         <button type="submit" class="btn btn-primary">Correct</button>
       </form>
 
-      {% if corrected_text and corrected_grammar %}
+      {% if corrected_text %}
       <h5>
-        Corrected Word: <br />
-        {{corrected_text}}
+        Corrected Sentence: <br />
+        {{ corrected_text }}
       </h5>
+      {% endif %} 
+
+      {% if spelling_mistakes %}
+      <h5>
+        Spelling Mistakes: <br />
+        {{ spelling_mistakes }}
+      </h5>
+      {% endif %}
+
+      {% if grammar_mistakes %}
       <h5>
         Grammar Mistakes: <br />
-        {{corrected_grammar}}
+        {% for mistake in grammar_mistakes %}
+        <p>
+          Incorrect: "{{ mistake['mistake'] }}", Suggested: "{{ mistake['suggestion'] }}"
+        </p>
+        {% endfor %}
       </h5>
       {% endif %}
     </div>
@@ -78,15 +92,28 @@
         </div>
         <button type="submit" class="btn btn-primary">Correct</button>
       </form>
-      {% if corrected_text and corrected_grammar %}
+
+      {% if corrected_file_text %}
       <h5>
         Corrected Word: <br />
-        {{ corrected_text }}
+        {{ corrected_file_text }}
       </h5>
+      {% endif %}
+
+      {% if spelling_mistakes %}
+      <h5>
+        Spelling Mistakes: <br />
+        {{ spelling_mistakes }}
+      </h5>
+      {% endif %}
+
+      {% if corrected_file_grammar %}
       <h5>
         Grammar Mistakes: <br />
-        {% for mistake in corrected_grammar %}
-        <p>Mistake: {{ mistake.mistake }} | Rule: {{ mistake.rule }}</p>
+        {% for mistake in corrected_file_grammar %}
+        <p>
+          Incorrect: "{{ mistake['mistake'] }}", Suggested: "{{ mistake['suggestion'] }}"
+        </p>
         {% endfor %}
       </h5>
       {% endif %}

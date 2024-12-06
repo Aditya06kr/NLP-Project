@@ -13,12 +13,9 @@ def index():
 def spell():
     if request.method == 'POST':
         text = request.form['text']
-        corrected_text, corrected_grammar = spell_checker_module.correct_text(text)
-        return render_template(
-            'index.html',
-            corrected_text=corrected_text,
-            corrected_grammar=corrected_grammar
-        )
+        corrected_text, grammar_mistakes, spelling_mistakes = spell_checker_module.process_text(text)
+        print("Corrected Text to Template:", corrected_text)  # Debugging line
+        return render_template('index.html', corrected_text=corrected_text, grammar_mistakes=grammar_mistakes, spelling_mistakes=spelling_mistakes)
 
 @app.route('/grammar', methods=['POST', 'GET'])
 def grammar():
